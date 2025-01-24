@@ -1,9 +1,8 @@
-import time
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
 import redis
-import logging
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+import json
 
 # Redis server configuration
 REDIS_HOST = '192.168.121.187'
@@ -11,31 +10,36 @@ REDIS_PORT = 6379
 REDIS_DB = 0
 KEY = '2021032030-proj3-output'
 
-def main():
-    try:
-        # Connect to Redis server
-        redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
-        logging.info(f"Connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
+# Connect to Redis
+redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
 
-        while True:
-            try:
-                # Get the value of the specified key
-                value = redis_client.get(KEY)
+# Initialize the Dash app
+app = dash.Dash(__name__)
 
-                if value is not None:
-                    logging.info(f"Value for key '{KEY}': {value}")
-                else:
-                    logging.warning(f"Key '{KEY}' does not exist or has no value.")
+app.layout = html.Div([
+    html.H1("Resource Monitoring Dashboard"),
+    dcc.Interval(
+        id='interval-component',
+        interval=5*1000,  # in milliseconds
+        n_intervals=0
+    ),
+    html.Div(id='live-update-text'),
+])
 
-                # Wait for 5 seconds
-                time.sleep(5)
-            except KeyboardInterrupt:
-                logging.info("Stopping the script.")
-                break
-            except Exception as e:
-                logging.error(f"Error fetching key '{KEY}': {e}")
-    except Exception as e:
-        logging.error(f"Failed to connect to Redis: {e}")
+@app.callback(
+    Output('live-update-text', 'children'),
+    Input('interval-component', 'n_intervals')
+)
+def update_metrics(n):
+    value = redis_client.get(KEY)
+    if value:
+        data = json.loads(value)
+        return [
+            html.Div(f"Percent Network Egress: {data.get('percent-network-egress', 'N/A')}%"),
+            html.Div(f"Percent Memory Caching: {data.get('percent-memory-caching', 'N/A')}%"),
+        ]
+    return "No data available."
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    
