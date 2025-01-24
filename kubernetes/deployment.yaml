@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: dash-app
-        image: your-dockerhub-username/dash-app:latest # Replace with your Docker image name
+        image: thenewson/dash-app:latest
         ports:
         - containerPort: 8050
