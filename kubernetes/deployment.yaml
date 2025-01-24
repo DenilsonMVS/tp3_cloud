@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dash-app
+  labels:
+    app: dash-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dash-app
+  template:
+    metadata:
+      labels:
+        app: dash-app
+    spec:
+      containers:
+      - name: dash-app
+        image: your-dockerhub-username/dash-app:latest # Replace with your Docker image name
+        ports:
+        - containerPort: 8050
