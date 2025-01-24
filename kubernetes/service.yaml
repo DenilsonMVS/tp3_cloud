@@ -4,9 +4,9 @@ metadata:
   name: dash-app-service
 spec:
   selector:
-    app: dash-app
+    app: dash-app  # Matches the labels in the Deployment
   ports:
   - protocol: TCP
-    port: 80
-    targetPort: 8050
-  type: LoadBalancer
+    port: 8050         # The port the service exposes externally
+    targetPort: 8050   # The port inside the container
+  type: NodePort       # Exposes the service on a node port
