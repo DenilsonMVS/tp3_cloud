@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN pip install --no-cache-dir dash pandas plotly
+RUN pip install --no-cache-dir dash pandas plotly redis
 
 # Expose the port the app runs on
 EXPOSE 8050
