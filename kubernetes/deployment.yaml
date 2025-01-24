@@ -16,7 +16,6 @@ spec:
     spec:
       containers:
       - name: dash-app
-        image: thenewson/dash-app:latest
-        imagePullPolicy: Always
+        image: thenewson/dash-app:0
         ports:
         - containerPort: 8050
