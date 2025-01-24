@@ -9,4 +9,5 @@ spec:
   - protocol: TCP
     port: 8050         # The port the service exposes externally
     targetPort: 8050   # The port inside the container
+    nodePort: 52015    # Fixed NodePort (customize as needed)
   type: NodePort       # Exposes the service on a node port
