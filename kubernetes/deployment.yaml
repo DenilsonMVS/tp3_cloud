@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: dash-app
-        image: thenewson/dash-app:10
+        image: thenewson/dash-app:11
         ports:
         - containerPort: 8050
