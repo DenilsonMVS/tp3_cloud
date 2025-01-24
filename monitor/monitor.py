@@ -1,5 +1,9 @@
 import time
 import redis
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
 # Redis server configuration
 REDIS_HOST = '192.168.121.187'
@@ -11,7 +15,7 @@ def main():
     try:
         # Connect to Redis server
         redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
-        print(f"Connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
+        logging.info(f"Connected to Redis at {REDIS_HOST}:{REDIS_PORT}")
 
         while True:
             try:
@@ -19,19 +23,19 @@ def main():
                 value = redis_client.get(KEY)
 
                 if value is not None:
-                    print(f"Value for key '{KEY}': {value}")
+                    logging.info(f"Value for key '{KEY}': {value}")
                 else:
-                    print(f"Key '{KEY}' does not exist or has no value.")
+                    logging.warning(f"Key '{KEY}' does not exist or has no value.")
 
                 # Wait for 5 seconds
                 time.sleep(5)
             except KeyboardInterrupt:
-                print("\nStopping the script.")
+                logging.info("Stopping the script.")
                 break
             except Exception as e:
-                print(f"Error fetching key '{KEY}': {e}")
+                logging.error(f"Error fetching key '{KEY}': {e}")
     except Exception as e:
-        print(f"Failed to connect to Redis: {e}")
+        logging.error(f"Failed to connect to Redis: {e}")
 
 if __name__ == "__main__":
     main()
