@@ -1,42 +1,53 @@
-
 from typing import Any, Dict
+from collections import deque
+
+# Initialize a global variable to store CPU utilization history
+cpu_utilization_history = {}
+
 
 def handler(input: Dict[str, Any], context: object) -> Dict[str, Any]:
-    # Extract relevant data from the input
-    cpu_count = sum(1 for key in input if key.startswith("cpu_percent-"))
-    cpu_usages = [input[f"cpu_percent-{i}"] for i in range(cpu_count)]
-    
-    # Calculate percentage of outgoing traffic bytes
-    bytes_sent = input.get("net_io_counters_eth0-bytes_sent1", 0)
-    bytes_recv = input.get("net_io_counters_eth0-bytes_recv1", 0)
-    total_bytes = bytes_sent + bytes_recv
-    percent_network_egress = (bytes_sent / total_bytes * 100) if total_bytes > 0 else 0
+    global cpu_utilization_history
 
-    # Calculate percentage of memory caching content
-    cached_memory = input.get("virtual_memory-cached", 0)
-    buffer_memory = input.get("virtual_memory-buffers", 0)
-    total_memory = input.get("virtual_memory-total", 1)  # Avoid division by zero
-    percent_memory_caching = ((cached_memory + buffer_memory) / total_memory * 100)
+    # Extract relevant metrics from the input
+    bytes_sent = input.get('net_io_counters_eth0-bytes_sent1', 0)
+    bytes_recv = input.get('net_io_counters_eth0-bytes_recv1', 0)
+    virtual_memory_total = input.get('virtual_memory-total', 1)  # Avoid division by zero
+    virtual_memory_buffers = input.get('virtual_memory-buffers', 0)
+    virtual_memory_cached = input.get('virtual_memory-cached', 0)
 
-    # Initialize moving averages in env if not already present
-    if 'cpu_moving_averages' not in context.env:
-        context.env['cpu_moving_averages'] = [0.0] * cpu_count
-        context.env['cpu_samples'] = [0] * cpu_count
+    # Calculate the percentage of outgoing traffic bytes
+    if bytes_recv > 0:
+        outgoing_traffic_percentage = (bytes_sent / (bytes_recv + bytes_sent)) * 100
+    else:
+        outgoing_traffic_percentage = 0
 
-    # Update moving averages
-    for i in range(cpu_count):
-        # Update the moving average for each CPU
-        context.env['cpu_samples'][i] += 1
-        context.env['cpu_moving_averages'][i] += (cpu_usages[i] - context.env['cpu_moving_averages'][i]) / context.env['cpu_samples'][i]
+    # Calculate the percentage of memory caching content
+    memory_caching_content = virtual_memory_buffers + virtual_memory_cached
+    memory_caching_percentage = (memory_caching_content / virtual_memory_total) * 100
 
-    # Prepare the output dictionary
-    output = {
-        "percent-network-egress": percent_network_egress,
-        "percent-memory-caching": percent_memory_caching
+    # Initialize CPU utilization history if not already done
+    cpu_ids = [key for key in input if key.startswith("cpu_percent-")]
+    cpu_utilization_history = {i: deque(maxlen=60) for i in range(len(cpu_ids))}
+
+    # Update CPU utilization history
+    for key in cpu_ids:
+        cpu_utilization = input.get(key, 0)
+        if key not in cpu_utilization_history:
+            cpu_utilization_history[key] = deque()
+        cpu_utilization_history[key].append(cpu_utilization)
+
+        while len(cpu_utilization_history[key]) > 12:
+            cpu_utilization_history[key].popleft()
+
+
+    average_cpu_utilization = {
+        f"avg-util-cpu1-60sec-{key}": sum(values) / len(values) if len(values) > 0 else 0
+        for key, values in cpu_ids.items()
     }
 
-    # Add moving averages to the output
-    for i in range(cpu_count):
-        output[f"avg-util-cpu{i}-60sec"] = context.env['cpu_moving_averages'][i]
-
-    return output
+    # Merge the dictionaries using dictionary unpacking
+    return {
+        "outgoing_traffic_percentage": outgoing_traffic_percentage,
+        "memory_caching_percentage": memory_caching_percentage,
+        **average_cpu_utilization  # Unpack the average_cpu_utilization dictionary
+    }
