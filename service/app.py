@@ -3,6 +3,7 @@ import time
 import os
 import json
 import redis
+import copy
 import importlib.util
 from importlib.machinery import SourceFileLoader 
 
@@ -55,14 +56,26 @@ def main():
 
     redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
 
-    context = {}
+    context = {
+        "host": REDIS_HOST,
+        "port": 6379,
+        "input_key": REDIS_KEY,
+        "output_key": redis_output_key,
+        "function_getmtime": time.perf_counter(),
+        "last_execution": None,
+        "env": {},
+    }
 
     while True:
         try:
             metrics = json.loads(redis_client.get(REDIS_KEY))            
 
+            context_copy = copy.deepcopy(context)
             value = handler(metrics, context)
             redis_client.set(redis_output_key, json.dumps(value))
+
+            context["last_execution"] = time.perf_counter()
+            context["env"] = context_copy["env"]
 
         except Exception as e:
             logging.critical(f"Error while executing the handler function: {e}")
