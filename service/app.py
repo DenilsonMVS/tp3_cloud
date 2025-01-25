@@ -4,12 +4,17 @@ import os
 import importlib.util
 
 def load_handler():
-    # Path to the mounted handler.py file
+    # Path to the mounted pyfile file
     handler_path = "/app/config/pyfile"  # Matches the mountPath in Deployment.yaml
 
     if os.path.exists(handler_path):
         try:
-            # Dynamically load the handler.py file
+            # Read the content of the pyfile file
+            with open(handler_path, "r") as file:
+                content = file.read()
+                logging.critical(f"Content of pyfile:\n{content}")
+
+            # Dynamically load the pyfile file
             spec = importlib.util.spec_from_file_location("handler_module", handler_path)
             handler_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(handler_module)
