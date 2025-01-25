@@ -53,7 +53,7 @@ def update_graphs(n):
         "memory_caching_percentage": 0
     }
 
-    # Fetch the latest data from Redis for main key
+    # Fetch the latest data from Redis for the main key
     data = redis_client.get(MAIN_KEY)
     if data:
         metrics = json.loads(data)
@@ -62,17 +62,15 @@ def update_graphs(n):
 
     # Append new data to the history
     timestamps.append(time.strftime('%H:%M:%S'))  # Add current time as a string
-    outgoing_traffic_history.append(metrics["outgoing_traffic_percentage"])
-    memory_caching_history.append(metrics["memory_caching_percentage"])
+    outgoing_traffic_history.append(metrics.get("outgoing_traffic_percentage", 0))
+    memory_caching_history.append(metrics.get("memory_caching_percentage", 0))
 
-    # Fetch all keys with the CPU utilization prefix
-    cpu_keys = redis_client.keys(f"{CPU_PREFIX}*")
-    for key in cpu_keys:
-        value = redis_client.get(key)
-        if key not in cpu_utilization_history:
-            # Initialize a deque for the new key
-            cpu_utilization_history[key] = deque(maxlen=50)
-        if value:
+    # Update CPU utilization metrics based on the prefix in the metrics dictionary
+    for key, value in metrics.items():
+        if key.startswith(CPU_PREFIX):
+            if key not in cpu_utilization_history:
+                # Initialize a deque for the new key
+                cpu_utilization_history[key] = deque(maxlen=50)
             cpu_utilization_history[key].append(float(value))
 
     # Create figures for the graphs
