@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: thenewson/service:26
+        image: thenewson/service:27
         env:
         - name: REDIS_OUTPUT_KEY
           valueFrom:
@@ -27,7 +27,17 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: refreshtime
-              key: REDIS_REFRESH_TIME        
+              key: REDIS_REFRESH_TIME
+        - name: FUNCTION_ENTRYPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: functionentrypoint
+              key: FUNCTION_ENTRYPOINT
+        - name: FILE_ENTRYPOINT
+          valueFrom:
+            configMapKeyRef:
+              name: fileentrypoint
+              key: FILE_ENTRYPOINT        
         volumeMounts:
         - name: pyfile-config-volume
           mountPath: /app/config/file

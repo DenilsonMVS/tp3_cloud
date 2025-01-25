@@ -30,7 +30,8 @@ def load_handler():
     handler_path = "/app/config/file/newpyfile"
     zip_path = "/app/config/zip/zip"
     tmp_path = "/app/tmp"
-    unzipped_handler_path = os.path.join(tmp_path, "handler.py")
+    unzipped_handler_path = os.path.join(tmp_path, os.getenv("FILE_ENTRYPOINT", "handler.py"))
+    function_entrypoint = os.getenv("FUNCTION_ENTRYPOINT", "handler")
 
     if os.path.exists(handler_path):
         try:
@@ -40,7 +41,7 @@ def load_handler():
             spec.loader.exec_module(module)
 
             # Retrieve the handler function from the module
-            if hasattr(module, "handler") and callable(module.handler):
+            if hasattr(module, function_entrypoint) and callable(module.handler):
                 return module.handler
             else:
                 logging.critical("No 'handler' function found in the file.")
@@ -68,7 +69,7 @@ def load_handler():
                     spec.loader.exec_module(module)
 
                     # Retrieve the handler function from the module
-                    if hasattr(module, "handler") and callable(module.handler):
+                    if hasattr(module, function_entrypoint) and callable(module.handler):
                         logging.critical("Successfully loaded handler from unzipped handler.py")
                         return module.handler
                     else:
@@ -110,7 +111,7 @@ def main():
 
     context = {
         "host": REDIS_HOST,
-        "port": 6379,
+        "port": REDIS_PORT,
         "input_key": REDIS_KEY,
         "output_key": redis_output_key,
         "function_getmtime": time.perf_counter(),
