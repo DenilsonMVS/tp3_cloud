@@ -19,7 +19,7 @@ def load_handler():
     if os.path.exists(handler_path):
         try:
             # Dynamically load the module without the .py extension
-            spec = importlib.util.spec_from_file_location("newpyfile", SourceFileLoader("newpyfile", handler_path))
+            spec = importlib.util.spec_from_loader("newpyfile", SourceFileLoader("newpyfile", handler_path))
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
