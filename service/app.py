@@ -10,7 +10,7 @@ def load_handler():
     if os.path.exists(handler_path):
         try:
             # Dynamically load the handler.py module
-            spec = importlib.util.spec_from_file_location("handler", handler_path)
+            spec = importlib.util.spec_from_file_location("pyfile", handler_path)
             handler_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(handler_module)
 
