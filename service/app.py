@@ -48,11 +48,11 @@ def load_handler():
             return lambda: "Default handler: Failed to load the file."
     
     elif os.path.exists(zip_path):
-        logging.info(f"Zip file found at {zip_path}. Attempting to unzip.")
+        logging.critical(f"Zip file found at {zip_path}. Attempting to unzip.")
 
         # Unzip the file into /app/tmp
         if unzip_file(zip_path, tmp_path):
-            logging.info("Zip file unzipped successfully.")
+            logging.critical("Zip file unzipped successfully.")
             # Process unzipped files from /app/tmp as needed
         else:
             logging.critical("Failed to unzip the zip file.")
