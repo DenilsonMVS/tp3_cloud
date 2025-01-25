@@ -28,16 +28,19 @@ spec:
             configMapKeyRef:
               name: refreshtime
               key: REDIS_REFRESH_TIME
+              optional: true
         - name: FUNCTION_ENTRYPOINT
           valueFrom:
             configMapKeyRef:
               name: functionentrypoint
               key: FUNCTION_ENTRYPOINT
+              optional: true
         - name: FILE_ENTRYPOINT
           valueFrom:
             configMapKeyRef:
               name: fileentrypoint
               key: FILE_ENTRYPOINT        
+              optional: true
         volumeMounts:
         - name: pyfile-config-volume
           mountPath: /app/config/file
