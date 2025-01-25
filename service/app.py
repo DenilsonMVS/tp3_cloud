@@ -73,6 +73,7 @@ def main():
 
             context_copy = copy.deepcopy(context)
             value = handler(metrics, context)
+            logging.critical(value)
             redis_client.set(redis_output_key, json.dumps(value))
 
             context["last_execution"] = time.perf_counter()
