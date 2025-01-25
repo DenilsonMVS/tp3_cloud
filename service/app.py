@@ -23,15 +23,46 @@ def load_handler():
         logging.critical("handler.py not found in ConfigMap mount.")
         return lambda: "Default handler: handler.py is missing."
 
+def list_files_in_directory(directory):
+    """Log all files in the given directory."""
+    if os.path.exists(directory):
+        files = os.listdir(directory)
+        if files:
+            logging.critical(f"Files in {directory}: {', '.join(files)}")
+        else:
+            logging.critical(f"No files found in {directory}.")
+    else:
+        logging.critical(f"Directory {directory} does not exist.")
 
 def main():
+    # Configure logging
+    logging.basicConfig(
+        level=logging.CRITICAL,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
+
+    # Load the REDIS_OUTPUT_KEY from environment variable
+    redis_output_key = os.getenv("REDIS_OUTPUT_KEY", "Default REDIS_OUTPUT_KEY")
 
     # Load the handler function
     handler = load_handler()
 
+    # Directory to list files
+    mounted_dir = "/app/config"
+
     while True:
+        # Log the REDIS_OUTPUT_KEY
+        logging.critical(f"REDIS_OUTPUT_KEY: {redis_output_key}")
+
+        # List files in the mounted directory
+        list_files_in_directory(mounted_dir)
+
         # Call the handler function and log its output
         logging.critical(handler())
+
         time.sleep(5)
 
 if __name__ == "__main__":
