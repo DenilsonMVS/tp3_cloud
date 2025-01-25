@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 import redis
 import json
 import time
+import logging
 
 # Redis configuration
 REDIS_HOST = '192.168.121.187'
@@ -37,6 +38,7 @@ app.layout = html.Div([
 def update_graphs(n):
     # Fetch the latest data from Redis
     data = redis_client.get(KEY)
+    logging.log(data)
     if data:
         metrics = json.loads(data)
     else:
