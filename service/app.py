@@ -1,6 +1,13 @@
 import logging
 import time
 import os
+import json
+
+REDIS_HOST = '192.168.121.187'
+REDIS_PORT = 6379
+REDIS_DB = 0
+REDIS_KEY = 'metrics'
+
 
 def load_handler():
     # Path to the mounted handler file (renamed)
@@ -11,7 +18,6 @@ def load_handler():
             # Read the content of the file
             with open(handler_path, "r") as file:
                 code = file.read()
-                logging.critical(f"Content of newpyfile:\n{code}")
 
                 # Define a local scope for executing the file
                 local_scope = {}
@@ -46,13 +52,15 @@ def main():
     # Load the handler function
     handler = load_handler()
 
-    while True:
-        # Log the REDIS_OUTPUT_KEY
-        logging.critical(f"REDIS_OUTPUT_KEY: {redis_output_key}")
+    redis = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
 
-        # Call the handler function and log its output
+    while True:
         try:
-            logging.critical(handler())
+            metrics = json.loads(redis.get(REDIS_KEY))
+
+            context = {}
+
+            logging.critical(handler(metrics, context))
         except Exception as e:
             logging.critical(f"Error while executing the handler function: {e}")
 
