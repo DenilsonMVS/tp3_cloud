@@ -7,6 +7,7 @@ import copy
 import importlib.util
 from importlib.machinery import SourceFileLoader 
 import zipfile
+import sys
 
 REDIS_HOST = '192.168.121.187'
 REDIS_PORT = 6379
@@ -55,6 +56,9 @@ def load_handler():
         if unzip_file(zip_path, tmp_path):
             logging.critical("Zip file unzipped successfully.")
             
+            # Add the tmp directory to sys.path so Python can find the unzipped modules
+            sys.path.append(tmp_path)
+            
             # Check if handler.py exists in the unzipped files
             if os.path.exists(unzipped_handler_path):
                 try:
@@ -79,7 +83,7 @@ def load_handler():
         else:
             logging.critical("Failed to unzip the zip file.")
             return lambda: "Default handler: Failed to unzip the zip file."
-
+        
     else:
         logging.critical("File not found in ConfigMap mount.")
         return lambda: "Default handler: File is missing."
