@@ -2,6 +2,7 @@ import logging
 import time
 import os
 import json
+import redis
 
 REDIS_HOST = '192.168.121.187'
 REDIS_PORT = 6379
@@ -52,11 +53,11 @@ def main():
     # Load the handler function
     handler = load_handler()
 
-    redis = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
+    redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
 
     while True:
         try:
-            metrics = json.loads(redis.get(REDIS_KEY))
+            metrics = json.loads(redis_client.get(REDIS_KEY))
 
             context = {}
 
