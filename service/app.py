@@ -14,8 +14,8 @@ REDIS_KEY = 'metrics'
 
 
 def load_handler():
-    # Path to the mounted file (without .py extension)
-    handler_path = "/app/config/newpyfile"  # No .py extension
+    handler_path = "/app/config/file/newpyfile"
+    zip_path = "/app/config/zip/zip"
 
     if os.path.exists(handler_path):
         try:
@@ -33,6 +33,8 @@ def load_handler():
         except Exception as e:
             logging.critical(f"Failed to load the file: {e}")
             return lambda: "Default handler: Failed to load the file."
+    elif os.path.exists(zip_path):
+        logging.critical("found zip")
     else:
         logging.critical("File not found in ConfigMap mount.")
         return lambda: "Default handler: File is missing."
