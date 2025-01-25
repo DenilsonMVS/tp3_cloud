@@ -41,8 +41,8 @@ def handler(input: Dict[str, Any], context: object) -> Dict[str, Any]:
 
 
     average_cpu_utilization = {
-        f"avg-util-cpu1-60sec-{key}": sum(values) / len(values) if len(values) > 0 else 0
-        for key, values in cpu_ids.items()
+        f"avg-util-cpu1-60sec-{key}": sum(cpu_utilization_history[key]) / len(cpu_utilization_history[key]) if len(cpu_utilization_history[key]) > 0 else 0
+        for key in cpu_ids
     }
 
     # Merge the dictionaries using dictionary unpacking
