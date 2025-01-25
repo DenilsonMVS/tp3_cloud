@@ -1,37 +1,34 @@
 import logging
 import time
 import os
-import importlib.util
 
 def load_handler():
-    # Path to the mounted pyfile file
-    handler_path = "/app/config/pyfile"  # Matches the mountPath in Deployment.yaml
+    # Path to the mounted handler file (renamed)
+    handler_path = "/app/config/pyfile"  # Use the updated file name
 
     if os.path.exists(handler_path):
         try:
-            # Read the content of the pyfile file
+            # Read the content of the file
             with open(handler_path, "r") as file:
-                content = file.read()
-                logging.critical(f"Content of pyfile:\n{content}")
+                code = file.read()
+                logging.critical(f"Content of pyfile:\n{code}")
 
-            # Dynamically load the pyfile file
-            spec = importlib.util.spec_from_file_location("handler_module", handler_path)
-            handler_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(handler_module)
+                # Define a local scope for executing the file
+                local_scope = {}
+                exec(code, {}, local_scope)
 
-            # Check if the 'handler' function exists in the module
-            if hasattr(handler_module, "handler") and callable(handler_module.handler):
-                logging.critical(f"'handler' function successfully loaded from {handler_path}.")
-                return handler_module.handler
-            else:
-                logging.critical(f"'handler' function not found in {handler_path}.")
-                return lambda: "Default handler: 'handler' function not found."
+                # Retrieve the handler function from the executed code
+                if "handler" in local_scope and callable(local_scope["handler"]):
+                    return local_scope["handler"]
+                else:
+                    logging.critical("No 'handler' function found in pyfile.")
+                    return lambda: "Default handler: 'handler' function not defined."
         except Exception as e:
-            logging.critical(f"Failed to load handler from {handler_path}: {e}")
-            return lambda: "Default handler: Failed to load the handler function."
+            logging.critical(f"Failed to load pyfile: {e}")
+            return lambda: "Default handler: Failed to load the file."
     else:
-        logging.critical("handler.py not found in ConfigMap mount.")
-        return lambda: "Default handler: handler.py is missing."
+        logging.critical("pyfile not found in ConfigMap mount.")
+        return lambda: "Default handler: pyfile is missing."
 
 def main():
     # Configure logging
