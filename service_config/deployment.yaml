@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: thenewson/service:22
+        image: thenewson/service:23
         env:
         - name: REDIS_OUTPUT_KEY
           valueFrom:
@@ -27,15 +27,15 @@ spec:
           valueFrom:
             configMapKeyRef:
               name: refreshtime
-              key: REDIS_REFRESH_TIME
-        
+              key: REDIS_REFRESH_TIME        
         volumeMounts:
         - name: pyfile-config-volume
           mountPath: /app/config/file
-        volumeMounts:
         - name: pyzip-config-volume
           mountPath: /app/config/zip
-
+        - name: tmp
+          mountPath: /app/tmp
+          
       volumes:
       - name: pyfile-config-volume
         configMap:
@@ -45,4 +45,5 @@ spec:
         configMap:
           name: zip
           optional: true
-      
+      - name: tmp
+        emptyDir: {}

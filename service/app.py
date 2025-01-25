@@ -6,6 +6,7 @@ import redis
 import copy
 import importlib.util
 from importlib.machinery import SourceFileLoader 
+import zipfile
 
 REDIS_HOST = '192.168.121.187'
 REDIS_PORT = 6379
@@ -13,9 +14,21 @@ REDIS_DB = 0
 REDIS_KEY = 'metrics'
 
 
+def unzip_file(zip_file, extract_to):
+    try:
+        with zipfile.ZipFile(zip_file, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+            logging.info(f"Unzipped contents of {zip_file} to {extract_to}")
+    except Exception as e:
+        logging.critical(f"Failed to unzip file {zip_file}: {e}")
+        return False
+    return True
+
+
 def load_handler():
     handler_path = "/app/config/file/newpyfile"
     zip_path = "/app/config/zip/zip"
+    tmp_path = "/app/tmp"
 
     if os.path.exists(handler_path):
         try:
@@ -33,8 +46,17 @@ def load_handler():
         except Exception as e:
             logging.critical(f"Failed to load the file: {e}")
             return lambda: "Default handler: Failed to load the file."
+    
     elif os.path.exists(zip_path):
-        logging.critical("found zip")
+        logging.info(f"Zip file found at {zip_path}. Attempting to unzip.")
+
+        # Unzip the file into /app/tmp
+        if unzip_file(zip_path, tmp_path):
+            logging.info("Zip file unzipped successfully.")
+            # Process unzipped files from /app/tmp as needed
+        else:
+            logging.critical("Failed to unzip the zip file.")
+
     else:
         logging.critical("File not found in ConfigMap mount.")
         return lambda: "Default handler: File is missing."
