@@ -3,6 +3,8 @@ import time
 import os
 import json
 import redis
+import importlib.util
+import shutil
 
 REDIS_HOST = '192.168.121.187'
 REDIS_PORT = 6379
@@ -11,31 +13,38 @@ REDIS_KEY = 'metrics'
 
 
 def load_handler():
-    # Path to the mounted handler file (renamed)
-    handler_path = "/app/config/newpyfile"  # Use the updated file name
+    # Paths for the mounted file and the renamed file
+    old_path = "/app/config/newpyfile"
+    new_path = "/app/config/newpyfile.py"
 
-    if os.path.exists(handler_path):
+    # Ensure the file is renamed to newpyfile.py
+    if os.path.exists(old_path):
         try:
-            # Read the content of the file
-            with open(handler_path, "r") as file:
-                code = file.read()
-
-                # Define a local scope for executing the file
-                local_scope = {}
-                exec(code, {}, local_scope)
-
-                # Retrieve the handler function from the executed code
-                if "handler" in local_scope and callable(local_scope["handler"]):
-                    return local_scope["handler"]
-                else:
-                    logging.critical("No 'handler' function found in newpyfile.")
-                    return lambda: "Default handler: 'handler' function not defined."
+            shutil.copy(old_path, new_path)
+            logging.info(f"File copied from {old_path} to {new_path}.")
         except Exception as e:
-            logging.critical(f"Failed to load newpyfile: {e}")
-            return lambda: "Default handler: Failed to load the file."
-    else:
-        logging.critical("newpyfile not found in ConfigMap mount.")
+            logging.critical(f"Failed to copy {old_path} to {new_path}: {e}")
+            return lambda: "Default handler: Failed to prepare the file."
+    elif not os.path.exists(new_path):
+        logging.critical("newpyfile or newpyfile.py not found in ConfigMap mount.")
         return lambda: "Default handler: newpyfile is missing."
+
+    # Load the newpyfile.py module dynamically
+    try:
+        spec = importlib.util.spec_from_file_location("newpyfile", new_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        # Retrieve the handler function from the module
+        if hasattr(module, "handler") and callable(module.handler):
+            return module.handler
+        else:
+            logging.critical("No 'handler' function found in newpyfile.py.")
+            return lambda: "Default handler: 'handler' function not defined."
+    except Exception as e:
+        logging.critical(f"Failed to load newpyfile.py: {e}")
+        return lambda: "Default handler: Failed to load the file."
+
 
 def main():
     # Configure logging
