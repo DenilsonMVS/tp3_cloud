@@ -1,6 +1,7 @@
 import logging
 import time
 import os
+import importlib.util
 
 def load_handler():
     # Path to the mounted handler.py file
@@ -8,14 +9,21 @@ def load_handler():
 
     if os.path.exists(handler_path):
         try:
-            # Read the content of the handler.py file
-            with open(handler_path, "r") as file:
-                content = file.read()
-                logging.critical(f"Content of handler.py:\n{content}")
-                return lambda: "Handler file content successfully logged."
+            # Dynamically load the handler.py file
+            spec = importlib.util.spec_from_file_location("handler_module", handler_path)
+            handler_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(handler_module)
+
+            # Check if the 'handler' function exists in the module
+            if hasattr(handler_module, "handler") and callable(handler_module.handler):
+                logging.critical(f"'handler' function successfully loaded from {handler_path}.")
+                return handler_module.handler
+            else:
+                logging.critical(f"'handler' function not found in {handler_path}.")
+                return lambda: "Default handler: 'handler' function not found."
         except Exception as e:
-            logging.critical(f"Failed to read handler.py: {e}")
-            return lambda: "Default handler: Failed to read the handler file."
+            logging.critical(f"Failed to load handler from {handler_path}: {e}")
+            return lambda: "Default handler: Failed to load the handler function."
     else:
         logging.critical("handler.py not found in ConfigMap mount.")
         return lambda: "Default handler: handler.py is missing."
@@ -33,18 +41,18 @@ def main():
     # Load the REDIS_OUTPUT_KEY from environment variable
     redis_output_key = os.getenv("REDIS_OUTPUT_KEY", "Default REDIS_OUTPUT_KEY")
 
-    # Load and print the content of the handler file
+    # Load the handler function
     handler = load_handler()
-
-    # Directory to list files
-    mounted_dir = "/app/config"
 
     while True:
         # Log the REDIS_OUTPUT_KEY
         logging.critical(f"REDIS_OUTPUT_KEY: {redis_output_key}")
 
         # Call the handler function and log its output
-        logging.critical(handler())
+        try:
+            logging.critical(handler())
+        except Exception as e:
+            logging.critical(f"Error while executing the handler function: {e}")
 
         time.sleep(5)
 
