@@ -36,16 +36,16 @@ app.layout = html.Div([
     [Input('interval-component', 'n_intervals')]
 )
 def update_graphs(n):
+    
+    metrics = {
+        "outgoing_traffic_percentage": 0,
+        "memory_caching_percentage": 0
+    }
+    
     # Fetch the latest data from Redis
     data = redis_client.get(KEY)
-    logging.log(data)
     if data:
-        metrics = json.loads(data)
-    else:
-        metrics = {
-            "outgoing_traffic_percentage": 0,
-            "memory_caching_percentage": 0
-        }
+        metrics = json.loads(data)    
 
     # Create figures for each graph
     outgoing_traffic_fig = go.Figure(data=[
