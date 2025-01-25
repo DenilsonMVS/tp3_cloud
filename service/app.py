@@ -55,13 +55,15 @@ def main():
 
     redis_client = redis.StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True)
 
+    context = {}
+
     while True:
         try:
-            metrics = json.loads(redis_client.get(REDIS_KEY))
+            metrics = json.loads(redis_client.get(REDIS_KEY))            
 
-            context = {}
+            value = handler(metrics, context)
+            redis_client.set(redis_output_key, json.dumps(value))
 
-            logging.critical(handler(metrics, context))
         except Exception as e:
             logging.critical(f"Error while executing the handler function: {e}")
 
