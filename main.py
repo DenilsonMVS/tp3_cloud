@@ -16,7 +16,7 @@ def handler(input: Dict[str, Any], context: object) -> Dict[str, Any]:
     virtual_memory_cached = input.get('virtual_memory-cached', 0)
 
     # Calculate the percentage of outgoing traffic bytes
-    if bytes_recv > 0:
+    if bytes_sent + bytes_recv > 0:
         outgoing_traffic_percentage = (bytes_sent / (bytes_recv + bytes_sent)) * 100
     else:
         outgoing_traffic_percentage = 0
