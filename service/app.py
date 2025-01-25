@@ -4,14 +4,14 @@ import os
 
 def load_handler():
     # Path to the mounted handler file (renamed)
-    handler_path = "/app/config/pyfile"  # Use the updated file name
+    handler_path = "/app/config/newpyfile"  # Use the updated file name
 
     if os.path.exists(handler_path):
         try:
             # Read the content of the file
             with open(handler_path, "r") as file:
                 code = file.read()
-                logging.critical(f"Content of pyfile:\n{code}")
+                logging.critical(f"Content of newpyfile:\n{code}")
 
                 # Define a local scope for executing the file
                 local_scope = {}
@@ -21,14 +21,14 @@ def load_handler():
                 if "handler" in local_scope and callable(local_scope["handler"]):
                     return local_scope["handler"]
                 else:
-                    logging.critical("No 'handler' function found in pyfile.")
+                    logging.critical("No 'handler' function found in newpyfile.")
                     return lambda: "Default handler: 'handler' function not defined."
         except Exception as e:
-            logging.critical(f"Failed to load pyfile: {e}")
+            logging.critical(f"Failed to load newpyfile: {e}")
             return lambda: "Default handler: Failed to load the file."
     else:
-        logging.critical("pyfile not found in ConfigMap mount.")
-        return lambda: "Default handler: pyfile is missing."
+        logging.critical("newpyfile not found in ConfigMap mount.")
+        return lambda: "Default handler: newpyfile is missing."
 
 def main():
     # Configure logging
