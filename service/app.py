@@ -5,7 +5,7 @@ import os
 
 def load_handler():
     # Path to the mounted handler.py file
-    handler_path = "/app/config/handler.py"  # Matches the mountPath in Deployment.yaml
+    handler_path = "/app/config/pyfile"  # Matches the mountPath in Deployment.yaml
 
     if os.path.exists(handler_path):
         try:

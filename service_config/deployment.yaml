@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: service
-        image: thenewson/service:3
+        image: thenewson/service:4
         env:
         - name: REDIS_OUTPUT_KEY
           valueFrom:
