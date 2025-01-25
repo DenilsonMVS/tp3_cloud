@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service
+  labels:
+    app: service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service
+  template:
+    metadata:
+      labels:
+        app: service
+    spec:
+      containers:
+      - name: service
+        image: thenewson/service:0
