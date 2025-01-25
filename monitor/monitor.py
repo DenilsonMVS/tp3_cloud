@@ -45,7 +45,9 @@ def update_graphs(n):
     # Fetch the latest data from Redis
     data = redis_client.get(KEY)
     if data:
-        metrics = json.loads(data)    
+        metrics = json.loads(data)
+
+    logging.critical(data)
 
     # Create figures for each graph
     outgoing_traffic_fig = go.Figure(data=[
