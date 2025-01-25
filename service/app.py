@@ -50,6 +50,7 @@ def main():
 
     # Load the REDIS_OUTPUT_KEY from environment variable
     redis_output_key = os.getenv("REDIS_OUTPUT_KEY", "Default REDIS_OUTPUT_KEY")
+    redis_refresh_time = float(os.getenv("REDIS_REFRESH_TIME", "5"))
 
     # Load the handler function
     handler = load_handler()
@@ -80,7 +81,7 @@ def main():
         except Exception as e:
             logging.critical(f"Error while executing the handler function: {e}")
 
-        time.sleep(5)
+        time.sleep(redis_refresh_time)
 
 if __name__ == "__main__":
     main()

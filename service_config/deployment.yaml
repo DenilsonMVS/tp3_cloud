@@ -16,13 +16,18 @@ spec:
     spec:
       containers:
       - name: service
-        image: thenewson/service:19
+        image: thenewson/service:20
         env:
         - name: REDIS_OUTPUT_KEY
           valueFrom:
             configMapKeyRef:
               name: newoutputkey
               key: REDIS_OUTPUT_KEY
+        - name: REDIS_REFRESH_TIME
+          valueFrom:
+            configMapKeyRef:
+              name: refreshtime
+              key: REDIS_REFRESH_TIME
         volumeMounts:
         - name: pyfile-config-volume
           mountPath: /app/config  # Mount the ConfigMap containing handler.py here
