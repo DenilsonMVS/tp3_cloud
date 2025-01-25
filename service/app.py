@@ -18,7 +18,7 @@ def unzip_file(zip_file, extract_to):
     try:
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
-            logging.info(f"Unzipped contents of {zip_file} to {extract_to}")
+            logging.critical(f"Unzipped contents of {zip_file} to {extract_to}")
     except Exception as e:
         logging.critical(f"Failed to unzip file {zip_file}: {e}")
         return False
@@ -29,6 +29,7 @@ def load_handler():
     handler_path = "/app/config/file/newpyfile"
     zip_path = "/app/config/zip/zip"
     tmp_path = "/app/tmp"
+    unzipped_handler_path = os.path.join(tmp_path, "handler.py")
 
     if os.path.exists(handler_path):
         try:
@@ -53,9 +54,31 @@ def load_handler():
         # Unzip the file into /app/tmp
         if unzip_file(zip_path, tmp_path):
             logging.critical("Zip file unzipped successfully.")
-            # Process unzipped files from /app/tmp as needed
+            
+            # Check if handler.py exists in the unzipped files
+            if os.path.exists(unzipped_handler_path):
+                try:
+                    # Dynamically load the handler from the unzipped content
+                    spec = importlib.util.spec_from_loader("newpyfile", SourceFileLoader("newpyfile", unzipped_handler_path))
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
+
+                    # Retrieve the handler function from the module
+                    if hasattr(module, "handler") and callable(module.handler):
+                        logging.critical("Successfully loaded handler from unzipped handler.py")
+                        return module.handler
+                    else:
+                        logging.critical("No 'handler' function found in the unzipped file.")
+                        return lambda: "Default handler: 'handler' function not defined."
+                except Exception as e:
+                    logging.critical(f"Failed to load handler from the unzipped file: {e}")
+                    return lambda: "Default handler: Failed to load handler from unzipped file."
+            else:
+                logging.critical("No handler.py found in the zip file.")
+                return lambda: "Default handler: No handler.py found in the zip."
         else:
             logging.critical("Failed to unzip the zip file.")
+            return lambda: "Default handler: Failed to unzip the zip file."
 
     else:
         logging.critical("File not found in ConfigMap mount.")
