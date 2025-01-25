@@ -4,6 +4,7 @@ import os
 import json
 import redis
 import importlib.util
+from importlib.machinery import SourceFileLoader 
 
 REDIS_HOST = '192.168.121.187'
 REDIS_PORT = 6379
@@ -18,7 +19,7 @@ def load_handler():
     if os.path.exists(handler_path):
         try:
             # Dynamically load the module without the .py extension
-            spec = importlib.util.spec_from_file_location("newpyfile", handler_path)
+            spec = importlib.util.spec_from_file_location("newpyfile", SourceFileLoader("newpyfile", handler_path))
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
